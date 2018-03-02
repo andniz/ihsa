@@ -1,10 +1,14 @@
 import random
+import math
 
 #Parametry
-harmony_memory_size=10
-harmony_memory_considering_rate=0.9
-pitch_adjusting_rate=0.3
-max_iterations=5000
+harmony_memory_size=7
+harmony_memory_considering_rate=0.95
+pitch_adjusting_rate_min=0.35
+pitch_adjusting_rate_max=0.99
+bandwidth_min=0.000001
+bandwidth_max=4
+max_iterations=3000
 dimensions=2
 
 #Funkcja, na razie do testów - potem zastąpi się funkcją otrzymaną z parsera
@@ -30,11 +34,13 @@ for i in range(harmony_memory_size):
 for i in range(max_iterations):
     #Generowanie nowego wektora
     x=[]
+    pitch_adjusting_rate=pitch_adjusting_rate_min+(pitch_adjusting_rate_max-pitch_adjusting_rate_min)*i/max_iterations
+    bandwidth=bandwidth_max*math.exp(math.log(bandwidth_min/bandwidth_max)*i/max_iterations)
     for dim in range(dimensions):
         if random.random()<harmony_memory_considering_rate:
-            x.append(harmony_memory[random.randint(0,9)][dim])
+            x.append(harmony_memory[random.randint(0,harmony_memory_size-1)][dim])
             if random.random()<pitch_adjusting_rate:
-                x[dim]=x[dim]+(random.random()-0.5)/10
+                x[dim]=x[dim]+(random.random()-0.5)*2*bandwidth
         else:
             x.append((random.random()-0.5)*4)
 
@@ -47,7 +53,7 @@ for i in range(max_iterations):
         harmony_memory[-1]=x
         values.append(camel(x))
 
-    if min(values)<-1.0316:
+    if min(values)<-1.031628:
         print(i)
         break
 
