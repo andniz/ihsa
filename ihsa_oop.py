@@ -77,20 +77,24 @@ class Problem:
             self.harmony_memory[-1] = x
             self.values.append(self.get_function_value(x))
 
+    def solve(self):
+        self.get_starting_points()
+        self.optimize()
+        print(min(self.values))
 # function = '(4-2.1*x1^2+(x1^4)/3)*x1^2+x1*x2+(-4+4*x2^2)*x2^2'
 function = 'x1^2+x2^2+x3^2'
 # function=input("Wprowadź funkcję: ")
-if 'x3' in function:
-    dimensions=3
-else:
-    dimensions=2
-
-ambaras=Problem(function, dimensions, -2, 2, -1, 7, -4, 2)
-
-ambaras.get_starting_points()
-ambaras.optimize()
-
-print(min(ambaras.values))
+# if 'x3' in function:
+#     dimensions=3
+# else:
+#     dimensions=2
+#
+# ambaras=Problem(function, dimensions, -2, 2, -1, 7, -4, 2)
+#
+# ambaras.get_starting_points()
+# ambaras.optimize()
+#
+# print(min(ambaras.values))
 # Dorobić obsługę źle wprowadzonej funkcji (żeby dało komunikat o błędzie) - pyparsing.ParseException
 # dorobić ograniczenia żeby wyszukiwało minima lokalne - ale nie w jednym przebiegu
 # funkcje takie żeby było kilka minimów
