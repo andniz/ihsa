@@ -1,14 +1,14 @@
 from num_str_parser import NumericStringParser
 import math, random, sys
+import numpy as np
+import matplotlib.pyplot as plt
 nsp=NumericStringParser()
 
-
-
-
 class Problem:
-
-#Przerobić argumenty dla x3 na kwargs
-    def __init__(self, func, dim, x1_lower, x1_upper, x2_lower, x2_upper, x3_lower=0, x3_upper=0):
+    """
+    Contains methods for IHS algorithm for function optimization.
+    """
+    def __init__(self, func, dim, ranges):
         self.function = func
         self.dimensions = dim
         self.harmony_memory = []
@@ -23,16 +23,18 @@ class Problem:
         self.max_iterations = 3000
         #starting_points_params: [x1_mean, x1_range, etc]
         self.starting_points_params = []
-        self.starting_points_params.append((x1_upper + x1_lower) / 2)
-        self.starting_points_params.append(x1_upper - x1_lower)
-        self.starting_points_params.append((x2_upper + x2_lower) / 2)
-        self.starting_points_params.append(x2_upper - x2_lower)
+        self.starting_points_params.append((ranges[1] + ranges[0]) / 2)
+        self.starting_points_params.append(ranges[1] - ranges[0])
+        self.starting_points_params.append((ranges[3] + ranges[2]) / 2)
+        self.starting_points_params.append(ranges[3] - ranges[2])
         if dim > 2:
-            self.starting_points_params.append((x3_upper + x3_lower) / 2)
-            self.starting_points_params.append(x3_upper - x3_lower)
+            self.starting_points_params.append((ranges[5] + ranges[4]) / 2)
+            self.starting_points_params.append(ranges[5] - ranges[4])
 
-
-    def get_function_value(self,x):
+    def get_function_value(self, x):
+        """
+        Expects a 2- or 3-dimensional vector. Returns the value of the function at the point.
+        """
         x1 = x[0]
         x2 = x[1]
         function_string = self.function.replace('x1',str(x1)).replace('x2',str(x2))
@@ -41,7 +43,25 @@ class Problem:
             function_string = function_string.replace('x3',str(x3))
         return nsp.eval(function_string)
 
+#Prawdopodobnie nie będzie potrzebne, zostawiam na wszelki wypadek
+    # def append_values_for_plotting(self, x):
+    #     self.x1_values.append(x[0])
+    #     self.x2_values.append(x[1])
+    #     if self.dimensions == 3:
+    #         self.x3_values.append(x[2])
+    #     self.y_values.append(self.get_function_value(x))
+    #     self.index_values.append(self.iteration_number)
+
     def get_starting_points(self):
+        """
+        Fills harmony memory and value memory with randomly generated points and their function values.
+        """
+        self.x1_values = []
+        self.x2_values = []
+        if self.dimensions == 3:
+            self.x3_values = []
+        self.y_values = []
+        self.index_values = []
         for i in range(self.harmony_memory_size):
             x = []
             for dim in range(self.dimensions):
@@ -51,11 +71,17 @@ class Problem:
             self.values.append(self.get_function_value(x))
 
     def optimize(self):
+        """
+        Iterates the algorithm for a given number of times.
+        """
         while self.iteration_number < self.max_iterations:
             self.iterate()
 
 
     def iterate(self):
+        """
+        Generates a new vector, if its function value is better than the worst in harmony memory, it replaces the worst one.
+        """
         #Generowanie nowego wektora
         x = []
         self.iteration_number += 1
@@ -80,22 +106,19 @@ class Problem:
     def solve(self):
         self.get_starting_points()
         self.optimize()
-        print(min(self.values))
-# function = '(4-2.1*x1^2+(x1^4)/3)*x1^2+x1*x2+(-4+4*x2^2)*x2^2'
-function = 'x1^2+x2^2+x3^2'
-# function=input("Wprowadź funkcję: ")
-# if 'x3' in function:
-#     dimensions=3
-# else:
-#     dimensions=2
-#
-# ambaras=Problem(function, dimensions, -2, 2, -1, 7, -4, 2)
-#
-# ambaras.get_starting_points()
-# ambaras.optimize()
-#
-# print(min(ambaras.values))
-# Dorobić obsługę źle wprowadzonej funkcji (żeby dało komunikat o błędzie) - pyparsing.ParseException
-# dorobić ograniczenia żeby wyszukiwało minima lokalne - ale nie w jednym przebiegu
-# funkcje takie żeby było kilka minimów
-# 3 garbny wielbłąd też jest
+
+    def draw_contour(self, ranges):
+        """
+        Draws a contour plot of the function in the given range.
+        """
+        resolution = 25
+        x = np.linspace(ranges[0], ranges[1], resolution)
+        y = np.linspace(ranges[2], ranges[3], resolution)
+        x1, x2 = np.meshgrid(x,y)
+        z = np.zeros((resolution,resolution))
+        for i in range(resolution):
+            for j in range(resolution):
+                z[j][i]=self.get_function_value([x1[j][i], x2[j][i]])
+        cs = plt.contourf(x1, x2, z)
+        cbar = plt.colorbar(cs)
+        plt.show()
