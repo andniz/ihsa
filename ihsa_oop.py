@@ -8,20 +8,22 @@ class Problem:
     """
     Contains methods for IHS algorithm for function optimization.
     """
+    harmony_memory_size = 7
+    harmony_memory_considering_rate = 0.95
+    pitch_adjusting_rate_min = 0.35
+    pitch_adjusting_rate_max = 0.99
+    bandwidth_min = 0.000001
+    bandwidth_max = 4
+
     def __init__(self, func, dim, ranges):
         self.function = func
         self.dimensions = dim
         self.harmony_memory = []
         self.values = []
         self.iteration_number = 0
-        self.harmony_memory_size = 7
-        self.harmony_memory_considering_rate = 0.95
-        self.pitch_adjusting_rate_min = 0.35
-        self.pitch_adjusting_rate_max = 0.99
-        self.bandwidth_min = 0.000001
-        self.bandwidth_max = 4
         self.max_iterations = 3000
         #starting_points_params: [x1_mean, x1_range, etc]
+        self.ranges = ranges
         self.starting_points_params = []
         self.starting_points_params.append((ranges[1] + ranges[0]) / 2)
         self.starting_points_params.append(ranges[1] - ranges[0])
@@ -43,15 +45,6 @@ class Problem:
             function_string = function_string.replace('x3',str(x3))
         return nsp.eval(function_string)
 
-#Prawdopodobnie nie będzie potrzebne, zostawiam na wszelki wypadek
-    # def append_values_for_plotting(self, x):
-    #     self.x1_values.append(x[0])
-    #     self.x2_values.append(x[1])
-    #     if self.dimensions == 3:
-    #         self.x3_values.append(x[2])
-    #     self.y_values.append(self.get_function_value(x))
-    #     self.index_values.append(self.iteration_number)
-
     def get_starting_points(self):
         """
         Fills harmony memory and value memory with randomly generated points and their function values.
@@ -65,7 +58,7 @@ class Problem:
         for i in range(self.harmony_memory_size):
             x = []
             for dim in range(self.dimensions):
-                x.append((random.random()- 0.5) * self.starting_points_params[2*dim] + self.starting_points_params[2*dim+1])
+                x.append((random.random()- 0.5) * self.starting_points_params[2*dim+1] + self.starting_points_params[2*dim])
             self.harmony_memory.append(0)
             self.harmony_memory[-1] = x
             self.values.append(self.get_function_value(x))
@@ -76,6 +69,7 @@ class Problem:
         """
         while self.iteration_number < self.max_iterations:
             self.iterate()
+        print(min(self.values))
 
 
     def iterate(self):
@@ -91,9 +85,10 @@ class Problem:
             if random.random() < self.harmony_memory_considering_rate:
                 x.append(self.harmony_memory[random.randint(0,self.harmony_memory_size-1)][dim])
                 if random.random() < pitch_adjusting_rate:
-                    x[dim] = x[dim] + (random.random()-0.5)*2*bandwidth
+                    while not (x[dim] >= self.ranges[2*dim] and x[dim] <= self.ranges[2*dim+1]):
+                        x[dim] = x[dim] + (random.random()-0.5)*2*bandwidth
             else:
-                x.append((random.random()- 0.5) * self.starting_points_params[2*dim] + self.starting_points_params[2*dim+1])
+                x.append((random.random()- 0.5) * self.starting_points_params[2*dim+1] + self.starting_points_params[2*dim])
 
         if self.get_function_value(x) < max(self.values):
             worst_index = self.values.index(max(self.values))
@@ -119,6 +114,6 @@ class Problem:
         for i in range(resolution):
             for j in range(resolution):
                 z[j][i]=self.get_function_value([x1[j][i], x2[j][i]])
-        cs = plt.contourf(x1, x2, z)
+        cs = plt.contourf(x1, x2, z, 15)
         cbar = plt.colorbar(cs)
         plt.show()
