@@ -13,7 +13,7 @@ class Problem:
     pitch_adjusting_rate_min = 0.35
     pitch_adjusting_rate_max = 0.99
     bandwidth_min = 0.000001
-    bandwidth_max = 4
+    bandwidth_max = 1
 
     def __init__(self, func, dim, ranges):
         self.function = func
@@ -85,8 +85,10 @@ class Problem:
             if random.random() < self.harmony_memory_considering_rate:
                 x.append(self.harmony_memory[random.randint(0,self.harmony_memory_size-1)][dim])
                 if random.random() < pitch_adjusting_rate:
-                    while not (x[dim] >= self.ranges[2*dim] and x[dim] <= self.ranges[2*dim+1]):
-                        x[dim] = x[dim] + (random.random()-0.5)*2*bandwidth
+                    diff = (random.random()-0.5) * 2 * bandwidth
+                    while not (x[dim] + diff >= self.ranges[2*dim] and x[dim] + diff <= self.ranges[2*dim+1]):
+                        diff = (random.random()-0.5) * 2 * bandwidth
+                    x[dim] += diff
             else:
                 x.append((random.random()- 0.5) * self.starting_points_params[2*dim+1] + self.starting_points_params[2*dim])
 
